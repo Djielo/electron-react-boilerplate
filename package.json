@@ -107,6 +107,7 @@
     "electron-updater": "^6.1.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^5.3.0",
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
@@ -242,11 +243,20 @@
   "collective": {
     "url": "https://opencollective.com/electron-react-boilerplate-594"
   },
-  "devEngines": {
+  "engines": {
     "node": ">=14.x",
     "npm": ">=7.x"
   },
   "electronmon": {
+    "mainFile": "src/main/main.ts",
+    "watch": [
+      "src/main/**/*",
+      "src/renderer/**/*"
+    ],
+    "ignore": [
+      "node_modules",
+      ".erb/dll/main.bundle.dev.js"
+    ],
     "patterns": [
       "!**/**",
       "src/main/**",

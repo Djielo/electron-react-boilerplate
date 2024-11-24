@@ -1,0 +1,162 @@
+/* Manager.css */
+
+/* Conteneur principal de Manager */
+.manager-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+}
+
+/* Conteneur Capital et Sécurité */
+.manager-capital-security-container {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+}
+
+.manager-capital-security {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Deux colonnes */
+  gap: 10px;
+}
+
+.capital-section,
+.security-section {
+  border: 1px solid gray;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #ffffff;
+}
+
+.capital-input {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Conteneur Gestion des Méthodes */
+.manager-methods-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Deux colonnes */
+  gap: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+}
+
+/* Méthodes disponibles */
+.methods-checked {
+  border: 1px solid gray;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #ffffff;
+}
+
+.method-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  border: 1px solid gray;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  margin-bottom: 5px;
+}
+
+/* Méthodes sélectionnées */
+.methods-selected {
+  border: 1px solid gray;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #ffffff;
+}
+
+.selected-item {
+  padding: 5px;
+  border: 1px solid gray;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  background-color: #f9f9f9;
+}
+
+/* Ajout de styles pour la modale */
+.config-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.config-modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 300px;
+}
+
+.config-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.config-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.config-buttons button:first-child {
+  background-color: #007bff;
+  color: white;
+}
+
+.config-buttons button:first-child:hover {
+  background-color: #0056b3;
+}
+
+.config-buttons button:last-child {
+  background-color: #ccc;
+}
+
+.config-buttons button:last-child:hover {
+  background-color: #999;
+}
+
+/* Commandes */
+.manager-commands {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px;
+  background-color: #f0f0f0;
+}
+
+/* Footer */
+.manager-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-top: 1px solid gray;
+}
+
+.manager-footer .game-status {
+  font-weight: bold;
+}
+
+.manager-footer .help-icon {
+  cursor: pointer;
+}

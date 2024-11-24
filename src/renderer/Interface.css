@@ -1,0 +1,24 @@
+/* Interface.css */
+.interface-container {
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #ffffff;
+}
+
+.interface-section {
+  margin-bottom: 10px;
+}
+
+.interface-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 10px;
+}
+
+.interface-tapis,
+.interface-historique {
+  border: 1px solid gray;
+  padding: 10px;
+  border-radius: 5px;
+}
