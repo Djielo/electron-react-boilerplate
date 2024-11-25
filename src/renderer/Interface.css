@@ -1,18 +1,18 @@
 /* Interface.css */
 .interface-container {
-  border: 1px solid black;
-  border-radius: 5px;
-  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Équilibre le haut et le bas */
+  height: 92%; /* Prend toute la hauteur disponible */
+  padding: 20px;
   background-color: #F0F0F0;
-}
-
-.interface-section {
-  margin-bottom: 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
 }
 
 .interface-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1fr; /* Tapis à gauche, historique à droite */
   gap: 10px;
 }
 
@@ -20,5 +20,10 @@
 .interface-historique {
   border: 1px solid gray;
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 5px;  
+}
+
+.roulette-table {
+  display: flex;
+  justify-content: center; /* Centre horizontalement le tapis */
 }
