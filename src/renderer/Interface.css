@@ -16,11 +16,42 @@
   gap: 10px;
 }
 
+.interface-tapis {
+  background: #008000;
+}
+
+.tapis {
+  display: flex;
+}
+
 .interface-tapis,
 .interface-historique {
-  border: 1px solid gray;
+  border: 1px solid #c7c7c7;
   padding: 10px;
   border-radius: 5px;  
+}
+
+/* Tapis de roulette : titre en blanc */
+.tapis-title {
+  color: white;
+}
+
+/* Bouton "Annuler" */
+.undo-button {
+  width: 30px;
+  height: 30px;
+  background-color: #ff4500; /* Rouge pour contraste */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  align-self: flex-end; /* Positionne à droite du tapis */
+}
+
+.undo-button:hover {
+  background-color: #e63e00;
 }
 
 .roulette-table {
