@@ -3,9 +3,9 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between; /* Équilibre le haut et le bas */
-  height: 92%; /* Prend toute la hauteur disponible */
-  padding: 20px;
-  background-color: #F0F0F0;
+  height: 94%; /* Prend toute la hauteur disponible */
+  padding: 15px;
+  background-color: #f0f0f0;
   border: 1px solid #f0f0f0;
   border-radius: 10px;
 }

@@ -10,8 +10,6 @@
   font-weight: bold;
   color: white;
   border: 2px outset rgba(255, 255, 255, 0.3);
-  margin: 0;
-  padding: 0;
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.2), 
               inset 0 -2px rgba(0, 0, 0, 0.2);
   transition: all 0.1s ease;
@@ -30,9 +28,13 @@
 }
 
 /* Survol des boutons rouges */
-.button-tapis.red:hover,
-.button-tapis:hover {
+.button-tapis.red:hover {
   filter: brightness(1.5); /* Éclaircir */
+  cursor: pointer;
+}
+
+.button-tapis:hover {
+  filter: brightness(1.2); /* Éclaircir */
   cursor: pointer;
 }
 
