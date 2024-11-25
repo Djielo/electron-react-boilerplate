@@ -1,10 +1,20 @@
 /* Manager.css */
 
+::placeholder {
+  font-size: 12px;
+}
+
+.capital-update {
+  /* insérer les propriétés par défaut */
+  width : 50%;
+  text-align : center;
+}
+
 /* Conteneur principal de Manager */
 .manager-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
   padding: 10px;
   background-color: #f0f0f0;
   border-radius: 10px;
@@ -12,23 +22,13 @@
 
 /* Conteneur Capital et Sécurité */
 .manager-capital-security-container {
-  padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 5px;
-}
-
-.manager-capital-security {
   display: grid;
   grid-template-columns: 1fr 1fr; /* Deux colonnes */
-  gap: 10px;
-}
-
-.capital-section,
-.security-section {
-  border: 1px solid gray;
+  gap: 20px;
+  border: 1px solid #c7c7c7;
   border-radius: 5px;
   padding: 10px;
-  background-color: #ffffff;
+  background-color: #F0F0F0;
 }
 
 .capital-input {
@@ -37,25 +37,72 @@
   margin-top: 10px;
 }
 
+.security-controls {
+  display: flex;
+  flex-direction: column; /* Conserver l'alignement vertical */
+  gap: 2px; /* Espacement vertical réduit entre les labels */
+}
+
+.security-controls label {
+  display: flex;
+  justify-content: space-between; /* Aligner le texte et l'input */
+  align-items: center;
+  font-size: 14px; /* Uniformiser la taille de police */
+  gap: 10px;
+}
+
+.input-security,
+.input {
+  width: 45%; /* Taille compacte des inputs */
+  padding: 5px;
+  font-size: 12px;
+}
+
+/* Compte à rebours */
+.countdown {
+  padding-top: 5px;
+  text-align: center;
+  background-color: #f0f0f0;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
 /* Conteneur Gestion des Méthodes */
 .manager-methods-container {
   display: grid;
   grid-template-columns: 1fr 1fr; /* Deux colonnes */
-  gap: 10px;
-  padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 5px;
-}
-
-/* Méthodes disponibles */
-.methods-checked {
-  border: 1px solid gray;
+  gap: 20px;
+  border: 1px solid #c7c7c7;
   border-radius: 5px;
   padding: 10px;
-  background-color: #ffffff;
+  background-color: #F0F0F0;
+  height: 250px;
 }
 
-.method-item {
+.icon-check {
+  color: green; /* Couleur pour montrer que la configuration est terminée */
+  cursor: not-allowed; /* Curseur normal pour indiquer que l'icône est statique */
+}
+
+.icon-cog {
+  color: blue; /* Définit la couleur de l'engrenage */
+  cursor: pointer; /* Change le curseur sur survol */
+}
+
+/* Icône active (cliquable) */
+.icon-pencil.active {
+  color: blue; /* Couleur pour l'état actif */
+  cursor: pointer; /* Change le curseur pour indiquer qu'il est cliquable */
+}
+
+/* Icône inactive (non cliquable) */
+.icon-pencil.inactive {
+  color: gray; /* Couleur grise pour l'état inactif */
+  cursor: not-allowed; /* Indique que l'icône n'est pas cliquable */
+}
+
+.method-checked {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -64,22 +111,21 @@
   border-radius: 5px;
   background-color: #f9f9f9;
   margin-bottom: 5px;
-}
+} 
 
-/* Méthodes sélectionnées */
-.methods-selected {
-  border: 1px solid gray;
-  border-radius: 5px;
-  padding: 10px;
-  background-color: #ffffff;
-}
-
-.selected-item {
+.method-selected {
   padding: 5px;
-  border: 1px solid gray;
+  border: 1px solid #c7c7c7;
   border-radius: 5px;
   margin-bottom: 5px;
   background-color: #f9f9f9;
+}
+
+.selected-container {
+  background: #fff;
+  height: max-content;
+  padding: 10px;
+  border-radius: 5px;
 }
 
 /* Ajout de styles pour la modale */
@@ -139,22 +185,21 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 10px;
   background-color: #f0f0f0;
 }
 
 /* Footer */
 .manager-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
+  justify-content: space-between;  
+  padding-top: 10px;
   background-color: #f9f9f9;
-  border-top: 1px solid gray;
+  border-top: 1px solid #c7c7c7;
+  background: #f0f0f0;
 }
 
 .manager-footer .game-status {
-  font-weight: bold;
+  font-weight:normal;
 }
 
 .manager-footer .help-icon {

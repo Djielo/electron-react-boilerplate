@@ -1,9 +1,16 @@
 /* App.css */
 
 .under-title {
-  margin: 0;  
+  margin: 0 0 5px 0;  
   font-size: 14px;
   font-weight: bold;
+  text-align: left;
+}
+
+.under-text {
+  margin: 0 0 5px 0;  
+  padding: 2px 0;
+  font-size: 14px;
   text-align: left;
 }
 
