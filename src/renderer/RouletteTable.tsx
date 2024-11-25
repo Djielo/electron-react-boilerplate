@@ -11,7 +11,7 @@ const RouletteTable: React.FC<RouletteTableProps> = ({ onCellClick }) => {
     [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35],
     [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34]
   ];
-  
+
   const redNumbers = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
 
   return (
@@ -20,20 +20,19 @@ const RouletteTable: React.FC<RouletteTableProps> = ({ onCellClick }) => {
         {/* Zone 0 et 00 avec les numéros */}
         <div className="main-numbers-container">
           <div className="zero-zone">
-            <button 
+            <button
               className="zero-button button-tapis"
               onClick={() => onCellClick(0)}
             >
               0
             </button>
-            <button 
+            <button
               className="zero-button button-tapis"
-              onClick={() => onCellClick("00")}
+              onClick={() => onCellClick(37)}
             >
               00
             </button>
           </div>
-
           {/* Grille principale des numéros avec les colonnes */}
           <div className="numbers-grid">
             {numbers.map((row, rowIndex) => (
@@ -41,7 +40,8 @@ const RouletteTable: React.FC<RouletteTableProps> = ({ onCellClick }) => {
                 {row.map((number) => (
                   <button
                     key={number}
-                    className={`number-button  button-tapis ${redNumbers.has(number) ? 'red' : 'black'}`}
+                    className={`number-button button-tapis ${redNumbers.has(number) ? 'red' : 'black'
+                      }`}
                     onClick={() => onCellClick(number)}
                   >
                     {number}
@@ -49,15 +49,14 @@ const RouletteTable: React.FC<RouletteTableProps> = ({ onCellClick }) => {
                 ))}
                 <button
                   className="column-button button-tapis"
-                  onClick={() => onCellClick(`C${3-rowIndex}`)}
+                  onClick={() => onCellClick(`C${3 - rowIndex}`)}
                 >
-                  C{3-rowIndex}
+                  C{3 - rowIndex}
                 </button>
               </div>
             ))}
           </div>
         </div>
-
         {/* Sixains */}
         <div className="sixain-row">
           {Array.from({ length: 6 }, (_, i) => (
