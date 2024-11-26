@@ -25,12 +25,17 @@ const Manager: React.FC = () => {
     // Fonction pour récupérer le capital depuis le backend
     const fetchCapital = async () => {
         try {
+            alert('🔄 DÉBUT : Récupération du capital actuel');
             const response = await axios.get('http://127.0.0.1:5000/capital');
+            console.log("Réponse GET capital:", response.data);
             const { capital_depart, capital_actuel } = response.data;
+
             setCapitalInitial(capital_depart);
             setCapitalActuel(capital_actuel);
+            alert(`✅ SUCCÈS : Capital récupéré\nDépart: ${capital_depart}€\nActuel: ${capital_actuel}€`);
         } catch (error) {
-            console.error('Erreur lors de la récupération du capital:', error);
+            console.error("Erreur fetchCapital:", error);
+            alert(`❌ ERREUR : Impossible de récupérer le capital : ${error}`);
         }
     };
 
@@ -39,23 +44,33 @@ const Manager: React.FC = () => {
         const value = parseFloat(newCapital);
         if (!isNaN(value)) {
             try {
-                await axios.post('http://127.0.0.1:5000/capital', {
+                alert(`🚀 DÉBUT : Envoi du nouveau capital ${value}€`);
+                console.log("Tentative d'envoi du capital:", value);
+
+                const response = await axios.post('http://127.0.0.1:5000/capital', {
                     capital_depart: value,
                     capital_actuel: value
                 });
-                setCapitalInitial(value);
-                setCapitalActuel(value);
-                setNewCapital('');
+
+                console.log("Réponse POST capital:", response.data);
+
+                if (response.data.status === 'success') {
+                    setCapitalInitial(value);
+                    setCapitalActuel(value);
+                    setNewCapital('');
+                    alert(`✅ SUCCÈS : Capital mis à jour à ${value}€`);
+                }
             } catch (error) {
-                console.error('Erreur lors de la mise à jour du capital:', error);
+                console.error("Erreur handleCapitalChange:", error);
+                alert(`❌ ERREUR : Échec de la mise à jour du capital : ${error}`);
             }
         }
     };
 
     // Calcul du bénéfice
     const benefice = capitalActuel - capitalInitial;
-    const beneficePourcentage = capitalInitial !== 0 
-        ? ((capitalActuel - capitalInitial) / capitalInitial) * 100 
+    const beneficePourcentage = capitalInitial !== 0
+        ? ((capitalActuel - capitalInitial) / capitalInitial) * 100
         : 0;
 
     // Fonctions pour la gestion des méthodes
@@ -66,8 +81,8 @@ const Manager: React.FC = () => {
     const handleSaveConfig = () => {
         setMethods((prev) =>
             prev.map((method) =>
-                method.name === activeMethod 
-                    ? { ...method, configured: true } 
+                method.name === activeMethod
+                    ? { ...method, configured: true }
                     : method
             )
         );
@@ -100,21 +115,21 @@ const Manager: React.FC = () => {
                         <h5 className="under-title">Suivi du Capital</h5>
                         <p className='under-text'>Capital Initial : {capitalInitial.toFixed(2)} €</p>
                         <p className='under-text'>Capital Actuel : {capitalActuel.toFixed(2)} €</p>
-                        <p className='under-text' style={{ 
-                            color: benefice >= 0 ? 'green' : 'red' 
+                        <p className='under-text' style={{
+                            color: benefice >= 0 ? 'green' : 'red'
                         }}>
                             Bénéfice : {benefice.toFixed(2)}€ ({beneficePourcentage.toFixed(2)}%)
                         </p>
                         <div className="capital-input">
-                            <input 
+                            <input
                                 className='input'
                                 type="text"
                                 value={newCapital}
                                 onChange={(e) => setNewCapital(e.target.value)}
                                 placeholder="Nouveau Capital"
                             />
-                            <button 
-                                className='capital-update' 
+                            <button
+                                className='capital-update'
                                 onClick={handleCapitalChange}
                             >
                                 Valider
