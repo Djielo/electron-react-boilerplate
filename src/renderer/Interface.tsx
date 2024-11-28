@@ -1,38 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import './Interface.css';
+import React, { useState, useEffect, useRef } from 'react';
 import RouletteTable from './RouletteTable';
+import ChasseNumGame from '../methods/ChasseNumGame';
+import { useGameContext } from './contexts/GameContext';
 import { FaUndo } from 'react-icons/fa';
 import axios from 'axios';
+import './Interface.css';
 
 const Interface: React.FC = () => {
   const [history, setHistory] = useState<number[]>([]);
+  const { isGameRunning, selectedMethods, methodConfigs } = useGameContext();
+  const gameRef = useRef<{ handleNouveauNumero: (numero: string) => void } | null>(null);
 
-  // Charger l'historique au montage du composant
   useEffect(() => {
     fetchHistory();
   }, []);
 
-  useEffect(() => {
-  }, [history]);
-
-  // Fonction pour récupérer l'historique depuis le backend
   const fetchHistory = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:5000/historique');
       setHistory(response.data);
     } catch (error) {
+      console.error('Erreur lors de la récupération de l\'historique:', error);
     }
   };
 
-  // Fonction pour gérer les clics sur le tapis
   const handleCellClick = async (value: string | number) => {
     if (typeof value === 'number') {
       try {
-        // Envoyer le numéro au backend
         await axios.post('http://127.0.0.1:5000/historique', {
           number: value
         });
-        // Rafraîchir l'historique
+
+        // Si la méthode est active, informer ChasseNumGame
+        if (isGameRunning && gameRef.current) {
+          gameRef.current.handleNouveauNumero(value.toString());
+        }
+
         await fetchHistory();
       } catch (error) {
         console.error('Erreur lors de l\'ajout à l\'historique:', error);
@@ -40,19 +43,13 @@ const Interface: React.FC = () => {
     }
   };
 
-  // Fonction pour annuler la dernière saisie
   const handleUndo = async () => {
     if (history.length > 0) {
       try {
-        // Créer un nouvel historique sans le dernier élément
         const newHistory = history.slice(0, -1);
-
-        // Envoyer le nouvel historique au backend
         await axios.post('http://127.0.0.1:5000/historique/update', {
           history: newHistory
         });
-
-        // Mettre à jour l'état local
         setHistory(newHistory);
       } catch (error) {
         console.error('Erreur lors de l\'annulation:', error);
@@ -60,7 +57,6 @@ const Interface: React.FC = () => {
     }
   };
 
-  // Fonction pour déterminer la couleur d'un numéro
   const getNumberColor = (number: number) => {
     if (number === 0 || number === 37) return 'green';
     const redNumbers = [
@@ -72,8 +68,22 @@ const Interface: React.FC = () => {
   return (
     <div className="interface-container">
       <div className="interface-section">
-        <h5 className='under-title'>Paramètres de jeu</h5>
-        <p className='under-text'>Section pour configurer les paramètres du jeu.</p>
+        <h5 className='under-title'>
+          {isGameRunning && selectedMethods.length > 0
+            ? `Jeu en cours : ${selectedMethods[0]}`
+            : 'Veuillez sélectionner vos méthodes et cliquer sur Démarrer'
+          }
+        </h5>
+
+        {isGameRunning && selectedMethods.includes('Chasse aux Numéros') && (
+          <ChasseNumGame
+            ref={gameRef}
+            baseMise={methodConfigs['Chasse aux Numéros']?.baseMise || 1}
+            onComplete={(success) => {
+              console.log("Méthode terminée:", success);
+            }}
+          />
+        )}
       </div>
       <div className="interface-layout">
         <div className="interface-tapis">

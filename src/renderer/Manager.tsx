@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import './Manager.css';
 import { FaCog, FaPencilAlt, FaCheck } from 'react-icons/fa';
 import axios from 'axios';
+import { useGameContext } from './contexts/GameContext';
+
+// Interface pour la configuration des méthodes
+interface MethodConfig {
+    baseMise: number;
+}
 
 const Manager: React.FC = () => {
     // États pour le capital
@@ -9,13 +15,27 @@ const Manager: React.FC = () => {
     const [capitalActuel, setCapitalActuel] = useState(0);
     const [newCapital, setNewCapital] = useState('');
 
-    // États pour les méthodes
+    // États pour les méthodes et leur gestion
     const [methods, setMethods] = useState([
         { name: 'Méthode SDC', configured: false, selected: false },
         { name: 'Tiers sur Sixains', configured: false, selected: false },
         { name: 'Chasse aux Numéros', configured: false, selected: false },
     ]);
     const [activeMethod, setActiveMethod] = useState<string | null>(null);
+    const [methodConfigs, setMethodConfigs] = useState<{ [key: string]: MethodConfig }>({
+        'Chasse aux Numéros': {
+            baseMise: 1
+        }
+    });
+
+    // Context pour la communication avec l'interface
+    const { setIsGameRunning, setSelectedMethods } = useGameContext();
+
+    // Effet pour mettre à jour les méthodes sélectionnées dans le contexte
+    useEffect(() => {
+        const selected = methods.filter(m => m.selected).map(m => m.name);
+        setSelectedMethods(selected);
+    }, [methods, setSelectedMethods]);
 
     // Récupérer le capital initial au chargement
     useEffect(() => {
@@ -25,17 +45,12 @@ const Manager: React.FC = () => {
     // Fonction pour récupérer le capital depuis le backend
     const fetchCapital = async () => {
         try {
-            alert('🔄 DÉBUT : Récupération du capital actuel');
             const response = await axios.get('http://127.0.0.1:5000/capital');
-            console.log("Réponse GET capital:", response.data);
             const { capital_depart, capital_actuel } = response.data;
-
             setCapitalInitial(capital_depart);
             setCapitalActuel(capital_actuel);
-            alert(`✅ SUCCÈS : Capital récupéré\nDépart: ${capital_depart}€\nActuel: ${capital_actuel}€`);
         } catch (error) {
             console.error("Erreur fetchCapital:", error);
-            alert(`❌ ERREUR : Impossible de récupérer le capital : ${error}`);
         }
     };
 
@@ -44,25 +59,18 @@ const Manager: React.FC = () => {
         const value = parseFloat(newCapital);
         if (!isNaN(value)) {
             try {
-                alert(`🚀 DÉBUT : Envoi du nouveau capital ${value}€`);
-                console.log("Tentative d'envoi du capital:", value);
-
                 const response = await axios.post('http://127.0.0.1:5000/capital', {
                     capital_depart: value,
                     capital_actuel: value
                 });
 
-                console.log("Réponse POST capital:", response.data);
-
                 if (response.data.status === 'success') {
                     setCapitalInitial(value);
                     setCapitalActuel(value);
                     setNewCapital('');
-                    alert(`✅ SUCCÈS : Capital mis à jour à ${value}€`);
                 }
             } catch (error) {
                 console.error("Erreur handleCapitalChange:", error);
-                alert(`❌ ERREUR : Échec de la mise à jour du capital : ${error}`);
             }
         }
     };
@@ -73,19 +81,21 @@ const Manager: React.FC = () => {
         ? ((capitalActuel - capitalInitial) / capitalInitial) * 100
         : 0;
 
-    // Fonctions pour la gestion des méthodes
+    // Gestion des méthodes
     const handleConfigureClick = (methodName: string) => {
         setActiveMethod(methodName);
     };
 
     const handleSaveConfig = () => {
-        setMethods((prev) =>
-            prev.map((method) =>
-                method.name === activeMethod
-                    ? { ...method, configured: true }
-                    : method
-            )
-        );
+        if (activeMethod) {
+            setMethods((prev) =>
+                prev.map((method) =>
+                    method.name === activeMethod
+                        ? { ...method, configured: true }
+                        : method
+                )
+            );
+        }
         setActiveMethod(null);
     };
 
@@ -103,8 +113,24 @@ const Manager: React.FC = () => {
         );
     };
 
-    // Filtrer les méthodes sélectionnées
-    const selectedMethods = methods.filter((method) => method.selected);
+    // Contrôles du jeu
+    const handleStart = () => {
+        const configuredMethods = methods.filter(m => m.selected && m.configured);
+        if (configuredMethods.length > 0) {
+            setIsGameRunning(true);
+        } else {
+            alert("Veuillez sélectionner et configurer au moins une méthode");
+        }
+    };
+
+    const handleStop = () => {
+        setIsGameRunning(false);
+    };
+
+    const handleReset = () => {
+        setIsGameRunning(false);
+        fetchCapital(); // Recharger le capital initial
+    };
 
     return (
         <div className="manager-container">
@@ -200,8 +226,8 @@ const Manager: React.FC = () => {
                 <div className="methods-selected">
                     <h5 className="under-title">Méthodes Sélectionnées</h5>
                     <div className='selected-container'>
-                        {selectedMethods.length > 0 ? (
-                            selectedMethods.map((method) => (
+                        {methods.filter(m => m.selected).length > 0 ? (
+                            methods.filter(m => m.selected).map((method) => (
                                 <div key={method.name} className="method-selected">
                                     <span>{method.name}</span>
                                 </div>
@@ -215,9 +241,9 @@ const Manager: React.FC = () => {
 
             {/* Commandes */}
             <div className="manager-commands">
-                <button>Démarrer</button>
-                <button>Arrêter</button>
-                <button>Réinitialiser</button>
+                <button onClick={handleStart}>Démarrer</button>
+                <button onClick={handleStop}>Arrêter</button>
+                <button onClick={handleReset}>Réinitialiser</button>
             </div>
 
             {/* Footer */}
@@ -230,9 +256,28 @@ const Manager: React.FC = () => {
             {activeMethod && (
                 <div className="config-modal">
                     <div className="config-modal-content">
-                        <h5>Configuration pour {activeMethod}</h5>
-                        <p className='under-text'>Ajoutez ici les paramètres spécifiques à cette méthode.</p>
-                        <div className="config-buttons">
+                        <h5 className="under-title">Configuration pour {activeMethod}</h5>
+                        {activeMethod === 'Chasse aux Numéros' && (
+                            <div className="config-input mt-4">
+                                <label className="under-text">
+                                    Mise de base (€) :
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        step="0.5"
+                                        className="input ml-2"
+                                        value={methodConfigs[activeMethod]?.baseMise || 1}
+                                        onChange={(e) => setMethodConfigs(prev => ({
+                                            ...prev,
+                                            [activeMethod]: {
+                                                baseMise: parseFloat(e.target.value) || 1
+                                            }
+                                        }))}
+                                    />
+                                </label>
+                            </div>
+                        )}
+                        <div className="config-buttons mt-6">
                             <button onClick={handleSaveConfig}>Valider</button>
                             <button onClick={handleCancelConfig}>Annuler</button>
                         </div>

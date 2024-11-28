@@ -1,70 +1,71 @@
 /* Interface.css */
+
+/* Layout principal avec dimensions fixes */
 .interface-container {
+  width: 1000px;
+  height: 515px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Équilibre le haut et le bas */
-  height: 94%; /* Prend toute la hauteur disponible */
-  padding: 15px;
-  background-color: #f0f0f0;
-  border: 1px solid #f0f0f0;
-  border-radius: 10px;
 }
 
+/* Section des paramètres de jeu */
+.interface-section {
+  height: 190px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #c7c7c7;
+  border-radius: 5px;
+}
+
+/* Layout pour le tapis et l'historique */
 .interface-layout {
+  flex: 1;
   display: grid;
-  grid-template-columns: 2fr 1fr; /* Tapis à gauche, historique à droite */
+  grid-template-columns: 2fr 1fr;
   gap: 10px;
 }
 
+/* Styles pour le tapis de roulette */
 .interface-tapis {
   background: #008000;
+  border: 1px solid #c7c7c7;
+  padding: 10px;
+  border-radius: 5px;
+  position: relative;
 }
 
 .tapis {
   display: flex;
+  height: 94%;
 }
 
-.interface-tapis,
-.interface-historique {
-  border: 1px solid #c7c7c7;
-  padding: 10px;
-  border-radius: 5px;  
-}
-
-/* Tapis de roulette : titre en blanc */
 .tapis-title {
   color: white;
-}
-
-/* Bouton "Annuler" */
-.undo-button {
-  width: 30px;
-  height: 30px;
-  background-color: #ff4500; /* Rouge pour contraste */
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  align-self: flex-end; /* Positionne à droite du tapis */
-}
-
-.undo-button:hover {
-  filter: brightness(1.5); /* Éclaircir */
-  cursor: pointer;
+  margin-bottom: 10px;
 }
 
 .roulette-table {
   display: flex;
-  justify-content: center; /* Centre horizontalement le tapis */
+  justify-content: center;
+  width: 100%;
+}
+
+/* Styles pour l'historique */
+.interface-historique {
+  border: 1px solid #c7c7c7;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f0f0f0;
 }
 
 .historique-numbers {
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
-  border-radius: 5px;
 }
 
 .historique-number {
@@ -75,7 +76,157 @@
   justify-content: center;
   font-size: 14px;
   font-weight: bold;
-  border-radius: 5px; /* Optionnel : coins légèrement arrondis */
+  border-radius: 5px;
   text-align: center;
 }
 
+/* Bouton Annuler */
+.undo-button {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  background-color: #ff4500;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.undo-button:hover {
+  filter: brightness(1.2);
+}
+
+/* Styles pour ChasseNumGame */
+.game-content {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  height: 100px;
+  background-color: #f0f0f0;
+}
+
+/* Section info (gauche) */
+.info-section {
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+  gap: 5px;
+  height: 150px;
+  min-width: 200px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #f0f0f0;
+  padding: 8px 12px;
+  border: 1px solid #c7c7c7;
+  border-radius: 10px;
+}
+
+.info-label {
+  color: #333;
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.info-value {
+  font-weight: 600;
+  color: #000;
+}
+
+/* Grille d'observation (distincte du tapis) */
+.observation-grid {
+  display: flex;
+  gap: 3px;
+  background-color: #f0f0f0;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.observation-zero-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-right: 3px;
+}
+
+.observation-numbers-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.observation-row {
+  display: flex;
+  gap: 3px;
+}
+
+
+.observation-cell {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background-color: #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+/*.observation-cell::after {
+  content: attr(data-count);
+  font-size: 0.8em;
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+}*/
+
+.observation-cell.twice {
+  background-color: #bbf7d0;  /* vert clair */
+}
+
+.observation-cell.more {
+  background-color: #fecaca;  /* rouge clair */
+}
+
+.observation-cell.selected {
+  background-color: #4ade80;  /* vert vif */
+  color: white;
+}
+
+/* Numéros misés */
+.numeros-mises {
+  margin-top: 10px;
+}
+
+.numeros-mises-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.numeros-mises-list {
+  display: flex;
+  gap: 5px;
+}
+
+.numero-mise {
+  background: #4ade80;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-weight: bold;
+}

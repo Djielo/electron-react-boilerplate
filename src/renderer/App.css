@@ -1,5 +1,23 @@
 /* App.css */
 
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 560px;
+  width: 1470px;
+  padding: 10;
+  box-sizing: border-box;
+}
+
+.app-title {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: left;
+}
+
 .under-title {
   margin: 0 0 5px 0;  
   font-size: 14px;
@@ -13,22 +31,6 @@
   font-size: 14px;
   text-align: left;
 }
-
-.app-container {
-  display: flex;
-  flex-direction: column;
-  height: 95vh;
-  padding: 10;
-  box-sizing: border-box;
-}
-
-.app-title {
-  margin: 0 0 5px 0;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: left;
-}
-
 .app-layout {
   display: grid;
   grid-template-columns: 1fr 2fr; /* 1/3 pour Manager, 2/3 pour Interface */
@@ -36,3 +38,4 @@
   height: calc(100vh - 10px); /* Ajustement pour inclure le titre */
   overflow: hidden; /* Suppression de la scrollbar */
 }
+ 
