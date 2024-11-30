@@ -25,6 +25,16 @@ export const updateCapital = async (newValue: number): Promise<boolean> => {
     }
 };
 
+export const getOccurrences = async (): Promise<{ [key: string]: number }> => {
+    try {
+      const response = await axios.get('http://127.0.0.1:5000/occurrences');
+      return response.data;
+    } catch (error) {
+      console.error("Erreur lors de la récupération des occurrences:", error);
+      return {};
+    }
+  };
+
 export const addToHistory = async (number: string): Promise<boolean> => {
     try {
         const response = await axios.post('http://127.0.0.1:5000/historique', {

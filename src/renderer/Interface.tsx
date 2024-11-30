@@ -1,58 +1,29 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import RouletteTable from './RouletteTable';
 import ChasseNumGame from '../methods/ChasseNumGame';
 import { useGameContext } from './contexts/GameContext';
 import { FaUndo } from 'react-icons/fa';
-import axios from 'axios';
 import './Interface.css';
 
 const Interface: React.FC = () => {
-  const [history, setHistory] = useState<number[]>([]);
-  const { isGameRunning, selectedMethods, methodConfigs } = useGameContext();
+  const {
+    isGameRunning,
+    selectedMethods,
+    methodConfigs,
+    history,
+    addToHistory,
+    undoLastNumber
+  } = useGameContext();
+  
   const gameRef = useRef<{ handleNouveauNumero: (numero: string) => void } | null>(null);
-
-  useEffect(() => {
-    fetchHistory();
-  }, []);
-
-  const fetchHistory = async () => {
-    try {
-      const response = await axios.get('http://127.0.0.1:5000/historique');
-      setHistory(response.data);
-    } catch (error) {
-      console.error('Erreur lors de la récupération de l\'historique:', error);
-    }
-  };
 
   const handleCellClick = async (value: string | number) => {
     if (typeof value === 'number') {
-      try {
-        await axios.post('http://127.0.0.1:5000/historique', {
-          number: value
-        });
+      await addToHistory(value);
 
-        // Si la méthode est active, informer ChasseNumGame
-        if (isGameRunning && gameRef.current) {
-          gameRef.current.handleNouveauNumero(value.toString());
-        }
-
-        await fetchHistory();
-      } catch (error) {
-        console.error('Erreur lors de l\'ajout à l\'historique:', error);
-      }
-    }
-  };
-
-  const handleUndo = async () => {
-    if (history.length > 0) {
-      try {
-        const newHistory = history.slice(0, -1);
-        await axios.post('http://127.0.0.1:5000/historique/update', {
-          history: newHistory
-        });
-        setHistory(newHistory);
-      } catch (error) {
-        console.error('Erreur lors de l\'annulation:', error);
+      // Si la méthode est active, informer ChasseNumGame
+      if (isGameRunning && gameRef.current) {
+        gameRef.current.handleNouveauNumero(value.toString());
       }
     }
   };
@@ -90,7 +61,7 @@ const Interface: React.FC = () => {
           <h5 className='under-title tapis-title'>Tapis de Roulette</h5>
           <div className="tapis">
             <RouletteTable onCellClick={handleCellClick} />
-            <button className="undo-button" onClick={handleUndo}>
+            <button className="undo-button" onClick={undoLastNumber}>
               <FaUndo />
             </button>
           </div>

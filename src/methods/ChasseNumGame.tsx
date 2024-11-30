@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import axios from 'axios';
+import { useGameContext } from '../renderer/contexts/GameContext';
 
 interface ChasseNumGameProps {
   baseMise: number;
@@ -8,9 +8,8 @@ interface ChasseNumGameProps {
 
 const ChasseNumGame = forwardRef<{ handleNouveauNumero: (numero: string) => void }, ChasseNumGameProps>(
   ({ baseMise = 1, onComplete }, ref) => {
+    const { history, occurrences } = useGameContext();
     const [phase, setPhase] = useState<'observation' | 'jeu'>('observation');
-    const [historique, setHistorique] = useState<string[]>([]);
-    const [capitalDepart, setCapitalDepart] = useState(0);
     const [numerosMises, setNumerosMises] = useState<number[]>([]);
     const [toursObservation, setToursObservation] = useState(24);
     const [toursJeu, setToursJeu] = useState(12);
@@ -22,7 +21,7 @@ const ChasseNumGame = forwardRef<{ handleNouveauNumero: (numero: string) => void
       [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34]
     ];
 
-    const calculerToursRestants = (historique: string[]) => {
+    const calculerToursRestants = (historique: number[]) => {
       if (historique.length >= 24) {
         return {
           phase: 'jeu' as const,
@@ -36,43 +35,27 @@ const ChasseNumGame = forwardRef<{ handleNouveauNumero: (numero: string) => void
       }
     };
 
-    const fetchHistorique = async () => {
-      try {
-        const response = await axios.get('http://127.0.0.1:5000/historique');
-        const history = response.data;
-        setHistorique(history);
-
-        const { phase: nouvellePhase, tours } = calculerToursRestants(history);
-        setPhase(nouvellePhase);
-        if (nouvellePhase === 'observation') {
-          setToursObservation(tours);
-        } else {
-          setToursJeu(tours);
-          analyserHistorique(history.slice(-24));
-        }
-      } catch (error) {
-        console.error("Erreur lors de la récupération de l'historique:", error);
-      }
-    };
-
+    // Initialisation de l'état
     useEffect(() => {
-      fetchHistorique();
+      const { phase: nouvellePhase, tours } = calculerToursRestants(history);
+      setPhase(nouvellePhase);
+      if (nouvellePhase === 'observation') {
+        setToursObservation(tours);
+      } else {
+        setToursJeu(tours);
+        analyserHistorique(history.slice(-24));
+      }
     }, []);
 
-    const analyserHistorique = (derniers24Tours: string[]) => {
-      const occurrences: { [key: string]: number } = {};
-      derniers24Tours.forEach(numero => {
-        occurrences[numero] = (occurrences[numero] || 0) + 1;
-      });
-
+    const analyserHistorique = (derniers24Tours: number[]) => {
       const numerosMultiples = Object.entries(occurrences)
         .filter(([_, count]) => count >= 2)
-        .map(([numero, _]) => numero === '00' ? 37 : parseInt(numero))
+        .map(([numero, _]) => parseInt(numero))
         .sort((a, b) => {
           const numA = a === 37 ? '00' : a.toString();
           const numB = b === 37 ? '00' : b.toString();
-          const indexA = derniers24Tours.indexOf(numA);
-          const indexB = derniers24Tours.indexOf(numB);
+          const indexA = history.indexOf(a);
+          const indexB = history.indexOf(b);
           return indexA - indexB;
         });
 
@@ -88,34 +71,28 @@ const ChasseNumGame = forwardRef<{ handleNouveauNumero: (numero: string) => void
     };
 
     const handleNouveauNumero = async (numero: string) => {
-      try {
-        await fetchHistorique();
-        
-        const newHistorique = [...historique, numero];
-        const { phase: nouvellePhase, tours } = calculerToursRestants(newHistorique);
+      const numeroInt = numero === '00' ? 37 : parseInt(numero);
+      const newHistorique = [...history, numeroInt];
+      const { phase: nouvellePhase, tours } = calculerToursRestants(newHistorique);
 
-        if (nouvellePhase === 'observation') {
-          setPhase('observation');
-          setToursObservation(tours);
+      if (nouvellePhase === 'observation') {
+        setPhase('observation');
+        setToursObservation(tours);
+      } else {
+        if (phase === 'observation') {
+          setPhase('jeu');
+          setToursJeu(12);
+          analyserHistorique(newHistorique.slice(-24));
         } else {
-          if (phase === 'observation') {
-            setPhase('jeu');
-            setToursJeu(12);
-            analyserHistorique(newHistorique.slice(-24));
-          } else {
-            setToursJeu(prev => prev - 1);
-            const numeroInt = numero === '00' ? 37 : parseInt(numero);
-            if (numerosMises.includes(numeroInt)) {
-              onComplete(true);
-              setIsActive(false);
-            } else if (tours <= 1) {
-              onComplete(false);
-              setIsActive(false);
-            }
+          setToursJeu(prev => prev - 1);
+          if (numerosMises.includes(numeroInt)) {
+            onComplete(true);
+            setIsActive(false);
+          } else if (tours <= 1) {
+            onComplete(false);
+            setIsActive(false);
           }
         }
-      } catch (error) {
-        console.error("Erreur dans handleNouveauNumero:", error);
       }
     };
 
@@ -124,12 +101,12 @@ const ChasseNumGame = forwardRef<{ handleNouveauNumero: (numero: string) => void
     }));
 
     const getObservationStatus = (numero: string) => {
-      const derniers24 = historique.slice(-24);
-      const count = derniers24.filter(n => n === numero).length;
+      const numeroInt = numero === '00' ? '37' : numero;
+      const count = occurrences[numeroInt] || 0;
 
       if (!isActive) return '';
 
-      if (phase === 'jeu' && numerosMises.includes(numero === '00' ? 37 : parseInt(numero))) {
+      if (phase === 'jeu' && numerosMises.includes(parseInt(numeroInt))) {
         return 'selected';
       }
 
@@ -141,21 +118,12 @@ const ChasseNumGame = forwardRef<{ handleNouveauNumero: (numero: string) => void
       return '';
     };
 
-    const derniers24 = historique.slice(-24);
+    const derniers24 = history.slice(-24);
 
     return (
       <div className="game-content">
         <div className="info-section">
           <div className="info-row">
-            <span className="info-label">Phase :</span>
-            <span className="info-value">{phase === 'observation' ? 'Observation' : 'Jeu'}</span>
-          </div>
-          <div className="info-row">
-            <span className="info-label">Tours restants :</span>
-            <span className="info-value">{phase === 'observation' ? toursObservation : toursJeu}</span>
-          </div>
-          <div className="info-row">
-            <span className="info-label">Mise de base :</span>
             <span className="info-value">{baseMise}€</span>
           </div>
         </div>
@@ -165,31 +133,28 @@ const ChasseNumGame = forwardRef<{ handleNouveauNumero: (numero: string) => void
             <div className={`observation-cell ${getObservationStatus('0')}`}>
               0
               <br />
-              ({derniers24.filter(n => n === '0').length})
+              ({occurrences['0'] || 0})
             </div>
             <div className={`observation-cell ${getObservationStatus('00')}`}>
               00
               <br />
-              ({derniers24.filter(n => n === '37').length})
+              ({occurrences['37'] || 0})
             </div>
           </div>
 
           <div className="observation-numbers-zone">
             {rows.map((row, rowIndex) => (
               <div key={rowIndex} className="observation-row">
-                {row.map((number: number) => {
-                  const count = derniers24.filter(n => parseInt(n) === number).length;
-                  return (
-                    <div
-                      key={number}
-                      className={`observation-cell ${getObservationStatus(number.toString())}`}
-                    >
-                      {number}
-                      <br />
-                      ({count})
-                    </div>
-                  );
-                })}
+                {row.map((number: number) => (
+                  <div
+                    key={number}
+                    className={`observation-cell ${getObservationStatus(number.toString())}`}
+                  >
+                    {number}
+                    <br />
+                    ({occurrences[number.toString()] || 0})
+                  </div>
+                ))}
               </div>
             ))}
           </div>
