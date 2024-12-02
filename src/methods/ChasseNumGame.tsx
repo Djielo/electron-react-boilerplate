@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { useGameContext } from '../renderer/contexts/GameContext';
+import useGameContext from '../renderer/contexts/GameContext';
 
 interface ChasseNumGameProps {
   baseMise: number;
@@ -118,16 +118,29 @@ const ChasseNumGame = forwardRef<{ handleNouveauNumero: (numero: string) => void
       return '';
     };
 
-    const derniers24 = history.slice(-24);
-
     return (
       <div className="game-content">
+        {/* Section Info avec le style d'origine */}
         <div className="info-section">
           <div className="info-row">
+            <span className="info-label">Phase :</span>
+            <span className="info-value">
+              {phase === 'observation' ? 'Observation' : 'Jeu'}
+            </span>
+          </div>
+          <div className="info-row">
+            <span className="info-label">Tours restants :</span>
+            <span className="info-value">
+              {phase === 'observation' ? toursObservation : toursJeu}
+            </span>
+          </div>
+          <div className="info-row">
+            <span className="info-label">Mise de base :</span>
             <span className="info-value">{baseMise}€</span>
           </div>
         </div>
 
+        {/* Grille d'observation */}
         <div className="observation-grid">
           <div className="observation-zero-zone">
             <div className={`observation-cell ${getObservationStatus('0')}`}>
@@ -160,6 +173,7 @@ const ChasseNumGame = forwardRef<{ handleNouveauNumero: (numero: string) => void
           </div>
         </div>
 
+        {/* Section des numéros joués */}
         {phase === 'jeu' && numerosMises.length > 0 && (
           <div className="numeros-mises">
             <p className="numeros-mises-title">Numéros joués :</p>

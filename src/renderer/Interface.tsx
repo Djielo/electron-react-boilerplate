@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import RouletteTable from './RouletteTable';
 import ChasseNumGame from '../methods/ChasseNumGame';
-import { useGameContext } from './contexts/GameContext';
+import useGameContext from './contexts/GameContext';
 import { FaUndo } from 'react-icons/fa';
 import './Interface.css';
 
@@ -14,14 +14,13 @@ const Interface: React.FC = () => {
     addToHistory,
     undoLastNumber
   } = useGameContext();
-  
+
   const gameRef = useRef<{ handleNouveauNumero: (numero: string) => void } | null>(null);
 
   const handleCellClick = async (value: string | number) => {
     if (typeof value === 'number') {
       await addToHistory(value);
 
-      // Si la méthode est active, informer ChasseNumGame
       if (isGameRunning && gameRef.current) {
         gameRef.current.handleNouveauNumero(value.toString());
       }
@@ -69,7 +68,7 @@ const Interface: React.FC = () => {
         <div className="interface-historique">
           <h5 className='under-title'>Historique des Sorties</h5>
           <div className="historique-numbers">
-            {history.map((number, index) => (
+            {history.map((number: number, index: number) => (
               <div
                 key={index}
                 className="historique-number"

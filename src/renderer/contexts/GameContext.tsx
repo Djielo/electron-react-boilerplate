@@ -3,28 +3,40 @@
 import React, { createContext, useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import axios from 'axios';
 
+// Interfaces pour le typage
+export interface Method {
+    name: string;
+    configured: boolean;
+    selected: boolean;
+}
+
 interface MethodConfig {
     baseMise: number;
+    configured: boolean;
 }
 
 interface GameContextType {
     // États du jeu
     isGameRunning: boolean;
     setIsGameRunning: Dispatch<SetStateAction<boolean>>;
-    
-    // Méthodes actives
+
+    // Méthodes et leur gestion
+    methods: Method[];
+    initializeMethods: () => void;
+    updateMethodStatus: (methodName: string, configured: boolean) => void;
+    toggleMethodSelection: (methodName: string) => void;
     selectedMethods: string[];
-    setSelectedMethods: Dispatch<SetStateAction<string[]>>;
-    
+
     // Configurations des méthodes
     methodConfigs: { [key: string]: MethodConfig };
     setMethodConfigs: Dispatch<SetStateAction<{ [key: string]: MethodConfig }>>;
+    updateMethodConfig: (newConfigs: { [key: string]: MethodConfig }) => Promise<void>;
 
     // Historique et occurrences
     history: number[];
     setHistory: Dispatch<SetStateAction<number[]>>;
     occurrences: { [key: string]: number };
-    
+
     // Fonctions utilitaires
     updateHistory: (newHistory: number[]) => Promise<void>;
     addToHistory: (number: number) => Promise<void>;
@@ -35,36 +47,86 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    // États du jeu
     const [isGameRunning, setIsGameRunning] = useState(false);
-    const [selectedMethods, setSelectedMethods] = useState<string[]>([]);
+
+    // États des méthodes
+    const [methods, setMethods] = useState<Method[]>([
+        { name: 'Méthode SDC', configured: false, selected: false },
+        { name: 'Tiers sur Sixains', configured: false, selected: false },
+        { name: 'Chasse aux Numéros', configured: false, selected: false },
+    ]);
+
+    // État dérivé pour les méthodes sélectionnées
+    const selectedMethods = methods.filter((m: Method) => m.selected).map((m: Method) => m.name);
+
+    // États des configurations
     const [methodConfigs, setMethodConfigs] = useState<{ [key: string]: MethodConfig }>({
         'Chasse aux Numéros': {
-            baseMise: 1
+            baseMise: 1,
+            configured: false
         }
     });
 
-    // Nouveaux états
+    // États pour l'historique et les occurrences
     const [history, setHistory] = useState<number[]>([]);
     const [occurrences, setOccurrences] = useState<{ [key: string]: number }>({});
 
-    // Charger l'historique initial
-    useEffect(() => {
-        fetchInitialData();
-    }, []);
+    // Fonctions de gestion des méthodes
+    const initializeMethods = () => {
+        setMethods([
+            { name: 'Méthode SDC', configured: false, selected: false },
+            { name: 'Tiers sur Sixains', configured: false, selected: false },
+            { name: 'Chasse aux Numéros', configured: false, selected: false },
+        ]);
+    };
 
-    const fetchInitialData = async () => {
+    const updateMethodStatus = (methodName: string, configured: boolean) => {
+        setMethods(prev => prev.map((method: Method) =>
+            method.name === methodName
+                ? { ...method, configured }
+                : method
+        ));
+    };
+
+    const toggleMethodSelection = (methodName: string) => {
+        setMethods(prev => prev.map((method: Method) =>
+            method.name === methodName
+                ? { ...method, selected: !method.selected }
+                : method
+        ));
+    };
+
+    // Fonctions de gestion des configurations
+    const fetchConfig = async () => {
         try {
-            const historyResponse = await axios.get('http://127.0.0.1:5000/historique');
-            setHistory(historyResponse.data);
-
-            const occurrencesResponse = await axios.get('http://127.0.0.1:5000/occurrences');
-            setOccurrences(occurrencesResponse.data);
+            const response = await axios.get('http://127.0.0.1:5000/config');
+            setMethodConfigs(response.data.methodConfigs);
+            // Mettre à jour l'état configured des méthodes
+            for (const [methodName, config] of Object.entries<MethodConfig>(response.data.methodConfigs)) {
+                updateMethodStatus(methodName, config.configured);
+            }
         } catch (error) {
-            console.error('Erreur lors du chargement initial:', error);
+            console.error('Erreur lors du chargement des configurations:', error);
         }
     };
 
-    // Fonction pour mettre à jour l'historique
+    const updateMethodConfig = async (newConfigs: { [key: string]: MethodConfig }) => {
+        try {
+            await axios.post('http://127.0.0.1:5000/config', {
+                methodConfigs: newConfigs
+            });
+            setMethodConfigs(newConfigs);
+            // Mettre à jour l'état configured des méthodes
+            for (const [methodName, config] of Object.entries(newConfigs)) {
+                updateMethodStatus(methodName, config.configured);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour des configurations:', error);
+        }
+    };
+
+    // Fonctions de gestion de l'historique
     const updateHistory = async (newHistory: number[]) => {
         try {
             await axios.post('http://127.0.0.1:5000/historique/update', {
@@ -77,7 +139,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    // Fonction pour ajouter un numéro
     const addToHistory = async (number: number) => {
         try {
             await axios.post('http://127.0.0.1:5000/historique', {
@@ -90,7 +151,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    // Fonction pour annuler le dernier numéro
     const undoLastNumber = async () => {
         if (history.length > 0) {
             try {
@@ -102,7 +162,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    // Fonction pour mettre à jour les occurrences
     const updateOccurrences = async () => {
         try {
             const response = await axios.get('http://127.0.0.1:5000/occurrences');
@@ -112,14 +171,35 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    // Chargement initial des données
+    useEffect(() => {
+        const loadInitialData = async () => {
+            try {
+                await fetchConfig();
+                const historyResponse = await axios.get('http://127.0.0.1:5000/historique');
+                setHistory(historyResponse.data);
+                const occurrencesResponse = await axios.get('http://127.0.0.1:5000/occurrences');
+                setOccurrences(occurrencesResponse.data);
+            } catch (error) {
+                console.error('Erreur lors du chargement initial:', error);
+            }
+        };
+
+        loadInitialData();
+    }, []);
+
     return (
         <GameContext.Provider value={{
             isGameRunning,
             setIsGameRunning,
+            methods,
+            initializeMethods,
+            updateMethodStatus,
+            toggleMethodSelection,
             selectedMethods,
-            setSelectedMethods,
             methodConfigs,
             setMethodConfigs,
+            updateMethodConfig,
             history,
             setHistory,
             occurrences,
@@ -133,7 +213,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 };
 
-export const useGameContext = () => {
+const useGameContext = () => {
     const context = useContext(GameContext);
     if (context === undefined) {
         throw new Error('useGameContext must be used within a GameProvider');
@@ -141,4 +221,4 @@ export const useGameContext = () => {
     return context;
 };
 
-export default GameContext;
+export default useGameContext;

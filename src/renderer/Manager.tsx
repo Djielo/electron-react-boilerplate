@@ -2,42 +2,34 @@ import React, { useState, useEffect } from 'react';
 import './Manager.css';
 import { FaCog, FaPencilAlt, FaCheck } from 'react-icons/fa';
 import axios from 'axios';
-import { useGameContext } from './contexts/GameContext';
-
-// Interface pour la configuration des méthodes
-interface MethodConfig {
-    baseMise: number;
-}
+import useGameContext, { Method } from './contexts/GameContext';
 
 const Manager: React.FC = () => {
-    // États pour le capital
+    // Import du context avec tout ce dont on a besoin
+    const {
+        isGameRunning,
+        setIsGameRunning,
+        methods,
+        toggleMethodSelection,
+        updateMethodStatus,
+        methodConfigs,
+        updateMethodConfig,
+        updateHistory
+    } = useGameContext();
+
+    // États locaux qui ne concernent que le Manager
+    const [activeMethod, setActiveMethod] = useState<string | null>(null);
     const [capitalInitial, setCapitalInitial] = useState(0);
     const [capitalActuel, setCapitalActuel] = useState(0);
     const [newCapital, setNewCapital] = useState('');
+    const [tempsMin, setTempsMin] = useState<number>(20);
+    const [perteMax, setPerteMax] = useState<number>(10);
+    const [gainMax, setGainMax] = useState<number>(10);
 
-    // États pour les méthodes et leur gestion
-    const [methods, setMethods] = useState([
-        { name: 'Méthode SDC', configured: false, selected: false },
-        { name: 'Tiers sur Sixains', configured: false, selected: false },
-        { name: 'Chasse aux Numéros', configured: false, selected: false },
-    ]);
-    const [activeMethod, setActiveMethod] = useState<string | null>(null);
-    const [methodConfigs, setMethodConfigs] = useState<{ [key: string]: MethodConfig }>({
-        'Chasse aux Numéros': {
-            baseMise: 1
-        }
-    });
+    // Pour stocker temporairement la configuration pendant l'édition
+    const [tempConfig, setTempConfig] = useState<number | null>(null);
 
-    // Context pour la communication avec l'interface
-    const { setIsGameRunning, setSelectedMethods } = useGameContext();
-
-    // Effet pour mettre à jour les méthodes sélectionnées dans le contexte
-    useEffect(() => {
-        const selected = methods.filter(m => m.selected).map(m => m.name);
-        setSelectedMethods(selected);
-    }, [methods, setSelectedMethods]);
-
-    // Récupérer le capital initial au chargement
+    // Charger le capital initial
     useEffect(() => {
         fetchCapital();
     }, []);
@@ -64,9 +56,9 @@ const Manager: React.FC = () => {
                     capital_actuel: value
                 });
 
-                if (response.data.status === 'success') {
-                    setCapitalInitial(value);
-                    setCapitalActuel(value);
+                if (response.data.data) {
+                    setCapitalInitial(response.data.data.capital_depart);
+                    setCapitalActuel(response.data.data.capital_actuel);
                     setNewCapital('');
                 }
             } catch (error) {
@@ -81,41 +73,41 @@ const Manager: React.FC = () => {
         ? ((capitalActuel - capitalInitial) / capitalInitial) * 100
         : 0;
 
-    // Gestion des méthodes
+    // Gestion des configurations de méthodes
     const handleConfigureClick = (methodName: string) => {
         setActiveMethod(methodName);
+        // Initialiser la configuration temporaire
+        setTempConfig(methodConfigs[methodName]?.baseMise || 0.01);
     };
 
-    const handleSaveConfig = () => {
-        if (activeMethod) {
-            setMethods((prev) =>
-                prev.map((method) =>
-                    method.name === activeMethod
-                        ? { ...method, configured: true }
-                        : method
-                )
-            );
+    const handleSaveConfig = async () => {
+        if (activeMethod && tempConfig !== null) {
+            try {
+                const newConfigs = {
+                    ...methodConfigs,
+                    [activeMethod]: {
+                        baseMise: tempConfig,
+                        configured: true
+                    }
+                };
+                await updateMethodConfig(newConfigs);
+                setActiveMethod(null);
+                setTempConfig(null);
+            } catch (error) {
+                console.error('Erreur lors de la sauvegarde:', error);
+                alert('Erreur lors de la sauvegarde');
+            }
         }
-        setActiveMethod(null);
     };
 
     const handleCancelConfig = () => {
         setActiveMethod(null);
-    };
-
-    const handleSelectChange = (methodName: string) => {
-        setMethods((prev) =>
-            prev.map((method) =>
-                method.name === methodName
-                    ? { ...method, selected: !method.selected }
-                    : method
-            )
-        );
+        setTempConfig(null);
     };
 
     // Contrôles du jeu
     const handleStart = () => {
-        const configuredMethods = methods.filter(m => m.selected && m.configured);
+        const configuredMethods = methods.filter((m: Method) => m.selected && m.configured);
         if (configuredMethods.length > 0) {
             setIsGameRunning(true);
         } else {
@@ -127,9 +119,35 @@ const Manager: React.FC = () => {
         setIsGameRunning(false);
     };
 
-    const handleReset = () => {
-        setIsGameRunning(false);
-        fetchCapital(); // Recharger le capital initial
+    const handleReset = async () => {
+        try {
+            // Arrêter le jeu
+            setIsGameRunning(false);
+
+            // Vider l'historique
+            await updateHistory([]);
+
+            // Récupérer et mettre à jour le capital
+            const response = await axios.get('http://127.0.0.1:5000/capital');
+            const lastCapital = response.data.capital_actuel;
+
+            await axios.post('http://127.0.0.1:5000/capital', {
+                capital_depart: lastCapital,
+                capital_actuel: lastCapital
+            });
+
+            setCapitalInitial(lastCapital);
+            setCapitalActuel(lastCapital);
+
+            // Réinitialiser les paramètres de sécurité
+            setTempsMin(20);
+            setPerteMax(10);
+            setGainMax(10);
+
+        } catch (error) {
+            console.error('Erreur lors de la réinitialisation:', error);
+            alert('Erreur lors de la réinitialisation');
+        }
     };
 
     return (
@@ -169,18 +187,33 @@ const Manager: React.FC = () => {
                         <div className="security-controls">
                             <label>
                                 Temps (min) :
-                                <input className="input-security" type="number" value={20} readOnly />
+                                <input
+                                    className="input-security"
+                                    type="number"
+                                    value={tempsMin}
+                                    onChange={(e) => setTempsMin(Math.max(1, parseInt(e.target.value) || 1))}
+                                />
                             </label>
                             <label>
                                 Perte max (%) :
-                                <input className="input-security" type="number" value={10} readOnly />
+                                <input
+                                    className="input-security"
+                                    type="number"
+                                    value={perteMax}
+                                    onChange={(e) => setPerteMax(Math.max(1, parseInt(e.target.value) || 1))}
+                                />
                             </label>
                             <label>
                                 Gain max (%) :
-                                <input className="input-security" type="number" value={10} readOnly />
+                                <input
+                                    className="input-security"
+                                    type="number"
+                                    value={gainMax}
+                                    onChange={(e) => setGainMax(Math.max(1, parseInt(e.target.value) || 1))}
+                                />
                             </label>
                         </div>
-                        <div className="countdown">20:00</div>
+                        <div className="countdown">{String(tempsMin).padStart(2, '0')}:00</div>
                     </div>
                 </div>
             </div>
@@ -196,7 +229,7 @@ const Manager: React.FC = () => {
                                 <input
                                     type="checkbox"
                                     checked={method.selected}
-                                    onChange={() => handleSelectChange(method.name)}
+                                    onChange={() => toggleMethodSelection(method.name)}
                                 />
                             </label>
                             <span className="method-name">{method.name}</span>
@@ -226,8 +259,8 @@ const Manager: React.FC = () => {
                 <div className="methods-selected">
                     <h5 className="under-title">Méthodes Sélectionnées</h5>
                     <div className='selected-container'>
-                        {methods.filter(m => m.selected).length > 0 ? (
-                            methods.filter(m => m.selected).map((method) => (
+                        {methods.filter((m: Method) => m.selected).length > 0 ? (
+                            methods.filter((m: Method) => m.selected).map((method: Method) => (
                                 <div key={method.name} className="method-selected">
                                     <span>{method.name}</span>
                                 </div>
@@ -263,16 +296,11 @@ const Manager: React.FC = () => {
                                     Mise de base (€) :
                                     <input
                                         type="number"
-                                        min="1"
-                                        step="0.5"
+                                        min="0.01"
+                                        step="0.01"
                                         className="input ml-2"
-                                        value={methodConfigs[activeMethod]?.baseMise || 1}
-                                        onChange={(e) => setMethodConfigs(prev => ({
-                                            ...prev,
-                                            [activeMethod]: {
-                                                baseMise: parseFloat(e.target.value) || 1
-                                            }
-                                        }))}
+                                        value={tempConfig ?? methodConfigs[activeMethod]?.baseMise ?? 0.01}
+                                        onChange={(e) => setTempConfig(parseFloat(e.target.value) || 0.01)}
                                     />
                                 </label>
                             </div>
